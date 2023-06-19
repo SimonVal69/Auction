@@ -18,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.Cacheable;
 
-
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -119,6 +118,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     public boolean startLot(int lotId) {
+        logger.info("Запущен метод startLot");
         try {
             Lot lot = lotRepository.findById(lotId).orElseThrow();
             if (lot.getStatus() != LotStatus.STARTED) {
@@ -126,7 +126,7 @@ public class AuctionServiceImpl implements AuctionService {
                 lotRepository.save(lot);
             }
         } catch (Exception e) {
-            logger.error("Ошибка чтения/записи в БД");
+            logger.error("Ошибка чтения/записи в БД (Лот по этому id не найден)");
             return false;
         }
         return true;
@@ -155,6 +155,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     public boolean stopLot(int lotId) {
+        logger.info("Запущен метод stopLot");
         try {
             Lot lot = lotRepository.findById(lotId).orElseThrow();
             if (lot.getStatus() != LotStatus.STOPPED) {
@@ -162,7 +163,7 @@ public class AuctionServiceImpl implements AuctionService {
                 lotRepository.save(lot);
             }
         } catch (Exception e) {
-            logger.error("Ошибка чтения/записи в БД");
+            logger.error("Ошибка чтения/записи в БД (Лот по этому id не найден)");
             return false;
         }
         return true;

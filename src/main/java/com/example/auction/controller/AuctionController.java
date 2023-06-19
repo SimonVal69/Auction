@@ -57,7 +57,7 @@ public class AuctionController {
     @Operation(summary = "Начать торги по лоту", description = """
             Переводит лот в состояние "начато", которое позволяет делать ставки на лот.
             Если лот уже находится в состоянии "начато", то ничего не делает и возвращает 200""")
-    public ResponseEntity<?> startLot(@PathVariable("id") int lotId) {
+    public ResponseEntity<String> startLot(@PathVariable("id") int lotId) {
         boolean started = auctionService.startLot(lotId);
         return started ? ResponseEntity.ok().build() : new ResponseEntity<>("Лот не найден", HttpStatus.NOT_FOUND);
     }
@@ -81,7 +81,7 @@ public class AuctionController {
     @Operation(summary = "Остановить торги по лоту", description = """
             Переводит лот в состояние "остановлен", которое запрещает делать ставки на лот.
             Если лот уже находится в состоянии "остановлен", то ничего не делает и возвращает 200""")
-    public ResponseEntity<?> stopLot(@PathVariable("id") int lotId) {
+    public ResponseEntity<String> stopLot(@PathVariable("id") int lotId) {
         boolean stopped = auctionService.stopLot(lotId);
         return stopped ? ResponseEntity.ok().build() : new ResponseEntity<>("Лот не найден", HttpStatus.NOT_FOUND);
     }

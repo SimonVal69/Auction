@@ -34,7 +34,7 @@
                       "name": "bid_time",
                       "type": "timestamp",
                       "constraints": {
-                        "nullable": true
+                        "nullable": false
                       }
                     }
                   },
