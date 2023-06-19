@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
-public class CreateLotDTO implements Serializable {
+public class CreationLotDTO implements Serializable {
 
     private String title;
 

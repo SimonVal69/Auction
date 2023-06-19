@@ -7,6 +7,6 @@ import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
-public class CreateBidDTO implements Serializable {
+public class CreationBidDTO implements Serializable {
     private String bidderName;
 }

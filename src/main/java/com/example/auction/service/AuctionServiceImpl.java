@@ -16,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -43,6 +45,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    @Cacheable("firstBidder")
     public String getFirstBidder(int lotId) {
         Lot lot = lotRepository.findById(lotId).orElse(null);
         if (lot == null) {
@@ -63,24 +66,31 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    @Cacheable("mostFrequentBidder")
     public String getMostFrequentBidder(int lotId) {
+        logger.info("Запущен метод getMostFrequentBidder");
         Lot lot = lotRepository.findById(lotId).orElse(null);
         if (lot == null) {
+            logger.info("Лот не найден, lot = " + lot);
             return "Лот не найден";
         }
         List<Bid> bids = lot.getBidsById();
         if (bids.isEmpty()) {
+            logger.info("Заявок по этому лоту нет, bids = " + bids);
             return "Заявок по этому лоту нет";
         }
         Map<String, Long> bidderCounts = bids.stream()
                 .collect(Collectors.groupingBy(Bid::getBidderName, Collectors.counting()));
+        logger.info("Количество ставок для каждого участника - bidderCounts: " + bidderCounts);
         long maxBidCount = bidderCounts.values().stream()
                 .max(Long::compare)
                 .orElse(0L);
+        logger.info("Максимальное количество ставок - maxBidCount: " + maxBidCount);
         List<String> mostFrequentBidders = bidderCounts.entrySet().stream()
                 .filter(entry -> entry.getValue() == maxBidCount)
                 .map(Map.Entry::getKey)
                 .toList();
+        logger.info("Участник с максимальным количеством ставок - mostFrequentBidders: " + mostFrequentBidders);
         if (mostFrequentBidders.size() != 1) {
             return "Не удалось определить наиболее активного участника";
         }
@@ -95,6 +105,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    @Cacheable("fullLot")
     public FullLotDTO getFullLotById(int lotId) {
         Lot lot = lotRepository.findById(lotId).orElse(null);
         FullLotDTO fullLotDTO = new FullLotDTO();
@@ -115,14 +126,18 @@ public class AuctionServiceImpl implements AuctionService {
                 lotRepository.save(lot);
             }
         } catch (Exception e) {
+            logger.error("Ошибка чтения/записи в БД");
             return false;
         }
         return true;
     }
 
     @Override
-    public String createBid(int lotId, CreateBidDTO createBidDTO) {
+    @Cacheable("createBid")
+    public String createBid(int lotId, CreationBidDTO creationBidDTO) {
+        logger.info("Запущен метод createBid");
         Lot lot = lotRepository.findById(lotId).orElse(null);
+        logger.debug("Обращение к таблице lot (чтение), результат - lot: " + lot);
         if (lot == null) {
             return "Лот не найден";
         }
@@ -130,10 +145,11 @@ public class AuctionServiceImpl implements AuctionService {
             return "Лот в неверном статусе";
         }
         Bid bid = new Bid();
-        bid.setBidderName(createBidDTO.getBidderName());
+        bid.setBidderName(creationBidDTO.getBidderName());
         bid.setBidTime(Timestamp.valueOf(LocalDateTime.now().plusHours(4)));
         bid.setLotByLotId(lot);
         bidRepository.save(bid);
+        logger.debug("Обращение к таблице bid (запись), результат - bid: " + bid);
         return "Ставка создана";
     }
 
@@ -146,20 +162,24 @@ public class AuctionServiceImpl implements AuctionService {
                 lotRepository.save(lot);
             }
         } catch (Exception e) {
+            logger.error("Ошибка чтения/записи в БД");
             return false;
         }
         return true;
     }
 
     @Override
-    public LotDto createLot(CreateLotDTO createLotDTO) {
-        Lot lot =  modelMapper.map(createLotDTO, Lot.class);
+    public LotDto createLot(CreationLotDTO creationLotDTO) {
+        logger.info("Запущен метод createLot");
+        Lot lot =  modelMapper.map(creationLotDTO, Lot.class);
         lot.setStatus(LotStatus.CREATED);
         lotRepository.save(lot);
+        logger.debug("Обращение к таблице lot (запись), результат - lot: " + lot);
         return modelMapper.map(lot, LotDto.class);
     }
 
     @Override
+    @Cacheable("lotsByStatus")
     public Page<LotDto> findLotsByStatus(LotStatus status, int page) {
         Pageable pageable = PageRequest.of(page, 10);
         Page<Lot> lotPage = lotRepository.findAllByStatus(status, pageable);
@@ -167,8 +187,11 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    @Cacheable("exportLotsToCSV")
     public byte[] exportLotsToCSV() {
+        logger.info("Запущен метод exportLotsToCSV");
         List<Lot> lots = lotRepository.findAll();
+        logger.debug("Обращение к таблице lot (чтение), результат - lots: " + lots);
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.POSTGRESQL_CSV)) {

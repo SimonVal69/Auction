@@ -66,13 +66,13 @@ public class AuctionController {
     @Operation(summary = "Сделать ставку по лоту", description = """
             Создает новую ставку по лоту.
             Если лот в статусе CREATED или STOPPED, то должна вернутся ошибка""")
-    public ResponseEntity<String> createBid(@RequestParam("Id") int lotId, @RequestBody CreateBidDTO createBidDTO) {
+    public ResponseEntity<String> createBid(@RequestParam("Id") int lotId, @RequestBody CreationBidDTO creationBidDTO) {
         ResponseEntity<String> response;
-        String result = auctionService.createBid(lotId, createBidDTO);
+        String result = auctionService.createBid(lotId, creationBidDTO);
         response = switch (result) {
             case "Лот не найден" -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
             case "Лот в неверном статусе" -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-            default -> ResponseEntity.status(HttpStatus.OK).body(result + " для " + createBidDTO.getBidderName());
+            default -> ResponseEntity.status(HttpStatus.OK).body(result + " для " + creationBidDTO.getBidderName());
         };
         return response;
     }
@@ -90,8 +90,8 @@ public class AuctionController {
     @Operation(summary = "Создает новый лот", description = """
             Метод создания нового лота,
             если есть ошибки в полях объекта лота - то нужно вернуть статус с ошибкой""")
-    public ResponseEntity<LotDto> createLot(@RequestBody CreateLotDTO createLotDTO) {
-        LotDto lotDto = auctionService.createLot(createLotDTO);
+    public ResponseEntity<LotDto> createLot(@RequestBody CreationLotDTO creationLotDTO) {
+        LotDto lotDto = auctionService.createLot(creationLotDTO);
         return ResponseEntity.ok(lotDto);
     }
 

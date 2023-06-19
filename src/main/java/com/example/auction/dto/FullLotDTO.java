@@ -1,11 +1,7 @@
 package com.example.auction.dto;
 
 import com.example.auction.enums.LotStatus;
-import com.example.auction.model.Bid;
-import com.example.auction.model.Lot;
-import jakarta.persistence.Column;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
