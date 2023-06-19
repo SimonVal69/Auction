@@ -1,0 +1,20 @@
+package com.example.auction.config;
+import com.example.auction.utilities.ServiceUtilities;
+import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
+
+    @Bean
+    public ServiceUtilities serviceUtilities() {
+        return new ServiceUtilities();
+    }
+}
+

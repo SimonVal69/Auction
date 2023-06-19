@@ -1,0 +1,76 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": [
+        {
+          "id": "createLotTable",
+          "author": "VVS",
+          "changes": [
+            {
+              "createTable": {
+                "tableName": "lot",
+                "columns": [
+                  {
+                    "column": {
+                      "name": "id",
+                      "type": "serial",
+                      "constraints": {
+                        "primaryKey": true,
+                        "nullable": false
+                      }
+                    }
+                  },
+                  {
+                    "column": {
+                      "name": "title",
+                      "type": "varchar(255)",
+                      "constraints": {
+                        "nullable": false
+                      }
+                    }
+                  },
+                  {
+                    "column": {
+                      "name": "description",
+                      "type": "varchar(255)",
+                      "constraints": {
+                        "nullable": false
+                      }
+                    }
+                  },
+                  {
+                    "column": {
+                      "name": "start_price",
+                      "type": "integer",
+                      "constraints": {
+                        "nullable": false
+                      }
+                    }
+                  },
+                  {
+                    "column": {
+                      "name": "bid_price",
+                      "type": "integer",
+                      "constraints": {
+                        "nullable": false
+                      }
+                    }
+                  },
+                  {
+                    "column": {
+                      "name": "status",
+                      "type": "tinyint",
+                      "constraints": {
+                        "nullable": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

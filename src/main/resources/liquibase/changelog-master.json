@@ -1,0 +1,14 @@
+{
+  "databaseChangeLog": [
+    {
+      "include": {
+        "file": "liquibase/changesets/18062023_createLotTable.json"
+      }
+    },
+    {
+      "include": {
+        "file": "liquibase/changesets/18062023_createBidTable.json"
+      }
+    }
+  ]
+}

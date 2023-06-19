@@ -1,0 +1,69 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": [
+        {
+          "id": "createBidTable",
+          "author": "VVS",
+          "changes": [
+            {
+              "createTable": {
+                "tableName": "bid",
+                "columns": [
+                  {
+                    "column": {
+                      "name": "id",
+                      "type": "serial",
+                      "constraints": {
+                        "primaryKey": true,
+                        "nullable": false
+                      }
+                    }
+                  },
+                  {
+                    "column": {
+                      "name": "bidder_name",
+                      "type": "varchar(255)",
+                      "constraints": {
+                        "nullable": false
+                      }
+                    }
+                  },
+                  {
+                    "column": {
+                      "name": "bid_time",
+                      "type": "timestamp",
+                      "constraints": {
+                        "nullable": true
+                      }
+                    }
+                  },
+                  {
+                    "column": {
+                      "name": "lot_id",
+                      "type": "integer",
+                      "constraints": {
+                        "nullable": false
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "addForeignKeyConstraint": {
+                "baseTableName": "bid",
+                "baseColumnNames": "lot_id",
+                "referencedTableName": "lot",
+                "referencedColumnNames": "id",
+                "constraintName": "FK_bid_lot_id",
+                "onDelete": "CASCADE",
+                "onUpdate": "CASCADE"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
