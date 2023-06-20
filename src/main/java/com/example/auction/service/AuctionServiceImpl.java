@@ -12,11 +12,12 @@ import org.apache.commons.csv.CSVPrinter;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -57,11 +58,11 @@ public class AuctionServiceImpl implements AuctionService {
         if (firstBidOptional.isEmpty()) {
             return "Заявок по этому лоту нет";
         }
-            Bid firstBid = firstBidOptional.get();
-            BidDTO firstBidder = new BidDTO();
-            firstBidder.setBidderName(firstBid.getBidderName());
-            firstBidder.setBidTime(firstBid.getBidTime());
-            return firstBidder.toString();
+        Bid firstBid = firstBidOptional.get();
+        BidDTO firstBidder = new BidDTO();
+        firstBidder.setBidderName(firstBid.getBidderName());
+        firstBidder.setBidTime(firstBid.getBidTime());
+        return firstBidder.toString();
     }
 
     @Override
@@ -117,6 +118,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    @CachePut(cacheNames = {"firstBidder", "fullLot", "lotsByStatus"}, key = "#lotId")
     public boolean startLot(int lotId) {
         logger.info("Запущен метод startLot");
         try {
@@ -133,6 +135,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    @CachePut(cacheNames = {"firstBidder", "fullLot", "lotsByStatus", "mostFrequentBidder"}, key = "#lotId")
     public String createBid(int lotId, CreationBidDTO creationBidDTO) {
         logger.info("Запущен метод createBid");
         Lot lot = lotRepository.findById(lotId).orElse(null);
@@ -153,6 +156,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    @CachePut(cacheNames = {"firstBidder", "fullLot", "lotsByStatus"}, key = "#lotId")
     public boolean stopLot(int lotId) {
         logger.info("Запущен метод stopLot");
         try {
@@ -171,7 +175,7 @@ public class AuctionServiceImpl implements AuctionService {
     @Override
     public LotDto createLot(CreationLotDTO creationLotDTO) {
         logger.info("Запущен метод createLot");
-        Lot lot =  modelMapper.map(creationLotDTO, Lot.class);
+        Lot lot = modelMapper.map(creationLotDTO, Lot.class);
         lot.setStatus(LotStatus.CREATED);
         lotRepository.save(lot);
         logger.debug("Обращение к таблице lot (запись), результат - lot: " + lot);
