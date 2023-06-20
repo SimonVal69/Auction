@@ -4,6 +4,7 @@ import com.example.auction.dto.*;
 import com.example.auction.enums.LotStatus;
 import com.example.auction.service.AuctionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -97,24 +98,33 @@ public class AuctionController {
 
     @GetMapping
     @Operation(summary = "Получить все лоты, основываясь на фильтре статуса и номере страницы", description = """
-            Возвращает все записи о лотах без информации о текущей цене и победителе
-            постранично.
-            Если страница не указана, то возвращается первая страница.
-            Номера страниц начинаются с 0.
-            Лимит на количество лотов на странице - 10 штук.""")
-    public ResponseEntity<Page<LotDto>> findLots(@RequestParam(value = "status", defaultValue = "CREATED") LotStatus status,
-                                                 @RequestParam(value = "page", required = false, defaultValue = "0") int page) {
+        Возвращает все записи о лотах без информации о текущей цене и победителе
+        постранично.
+        Если страница не указана, то возвращается первая страница.
+        Номера страниц начинаются с 0.
+        Лимит на количество лотов на странице - 10 штук.""")
+    @ApiResponse(responseCode = "204", description = "Нет данных для отображения")
+    public ResponseEntity<?> findLots(@RequestParam(value = "status", defaultValue = "CREATED") LotStatus status,
+                                      @RequestParam(value = "page", required = false, defaultValue = "0") int page) {
         Page<LotDto> lots = auctionService.findLotsByStatus(status, page);
+        if (lots.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok(lots);
     }
 
+
     @GetMapping(value = "/export", produces = "application/csv")
     @Operation(summary = "Экспортировать все лоты в файл CSV", description = """
-            Экспортировать все лоты в формате
-            id, title, status, lastBidder, currentPrice
-            в одном файле CSV""")
-    public ResponseEntity<byte[]> exportLotsToCSV() {
+        Экспортировать все лоты в формате
+        id, title, status, lastBidder, currentPrice
+        в одном файле CSV""")
+    @ApiResponse(responseCode = "204", description = "Нет данных для экспорта")
+    public ResponseEntity<?> exportLotsToCSV() {
         byte[] csvData = auctionService.exportLotsToCSV();
+        if (csvData.length == 0) {
+            return ResponseEntity.noContent().build();
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/csv"));
         headers.setContentDispositionFormData("attachment", "lots.csv");
@@ -123,5 +133,6 @@ public class AuctionController {
                 .headers(headers)
                 .body(csvData);
     }
+
 }
 

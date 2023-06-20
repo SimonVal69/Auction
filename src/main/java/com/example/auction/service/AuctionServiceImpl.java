@@ -133,7 +133,6 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    @Cacheable("createBid")
     public String createBid(int lotId, CreationBidDTO creationBidDTO) {
         logger.info("Запущен метод createBid");
         Lot lot = lotRepository.findById(lotId).orElse(null);
@@ -184,15 +183,23 @@ public class AuctionServiceImpl implements AuctionService {
     public Page<LotDto> findLotsByStatus(LotStatus status, int page) {
         Pageable pageable = PageRequest.of(page, 10);
         Page<Lot> lotPage = lotRepository.findAllByStatus(status, pageable);
+        if (lotPage.isEmpty()) {
+            logger.info("Нет данных для отображения");
+            return Page.empty();
+        }
         return lotPage.map(lot -> modelMapper.map(lot, LotDto.class));
     }
 
+
     @Override
-    @Cacheable("exportLotsToCSV")
     public byte[] exportLotsToCSV() {
         logger.info("Запущен метод exportLotsToCSV");
         List<Lot> lots = lotRepository.findAll();
         logger.debug("Обращение к таблице lot (чтение), результат - lots: " + lots);
+        if (lots.isEmpty()) {
+            logger.info("Список лотов пуст, экспорт не требуется");
+            return new byte[0];
+        }
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.POSTGRESQL_CSV)) {

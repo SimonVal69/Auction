@@ -24,8 +24,7 @@ public class AppConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager("firstBidder", "mostFrequentBidder",
-                "fullLot", "lotsByStatus", "createBid", "exportLotsToCSV");
+        return new ConcurrentMapCacheManager("firstBidder", "mostFrequentBidder", "fullLot", "lotsByStatus");
     }
 }
 
