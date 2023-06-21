@@ -12,7 +12,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -71,12 +71,10 @@ public class AuctionServiceImpl implements AuctionService {
         logger.info("Запущен метод getMostFrequentBidder");
         Lot lot = lotRepository.findById(lotId).orElse(null);
         if (lot == null) {
-            logger.info("Лот не найден, lot = " + lot);
             return "Лот не найден";
         }
         List<Bid> bids = lot.getBidsById();
-        if (bids.isEmpty()) {
-            logger.info("Заявок по этому лоту нет, bids = " + bids);
+        if (bids.isEmpty() || lot.getStatus() == LotStatus.CREATED) {
             return "Заявок по этому лоту нет";
         }
         Map<String, Long> bidderCounts = bids.stream()
@@ -118,7 +116,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    @CachePut(cacheNames = {"firstBidder", "fullLot", "lotsByStatus"}, key = "#lotId")
+    @CacheEvict(cacheNames = {"firstBidder", "fullLot", "lotsByStatus"}, key = "#lotId")
     public boolean startLot(int lotId) {
         logger.info("Запущен метод startLot");
         try {
@@ -135,7 +133,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    @CachePut(cacheNames = {"firstBidder", "fullLot", "lotsByStatus", "mostFrequentBidder"}, key = "#lotId")
+    @CacheEvict(cacheNames = {"firstBidder", "fullLot", "lotsByStatus", "mostFrequentBidder"}, key = "#lotId")
     public String createBid(int lotId, CreationBidDTO creationBidDTO) {
         logger.info("Запущен метод createBid");
         Lot lot = lotRepository.findById(lotId).orElse(null);
@@ -156,7 +154,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    @CachePut(cacheNames = {"firstBidder", "fullLot", "lotsByStatus"}, key = "#lotId")
+    @CacheEvict(cacheNames = {"firstBidder", "fullLot", "lotsByStatus"}, key = "#lotId")
     public boolean stopLot(int lotId) {
         logger.info("Запущен метод stopLot");
         try {
