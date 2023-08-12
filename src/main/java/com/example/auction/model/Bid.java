@@ -26,4 +26,13 @@ public class Bid {
     @JoinColumn(name = "lot_id", referencedColumnName = "id")
     private Lot lotByLotId;
 
+    @Override
+    public String toString() {
+        return "Bid{" +
+                "id=" + id +
+                ", bidderName='" + bidderName + '\'' +
+                ", bidTime=" + bidTime +
+                '}';
+    }
+
 }

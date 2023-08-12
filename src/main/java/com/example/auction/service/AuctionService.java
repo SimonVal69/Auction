@@ -10,9 +10,9 @@ public interface AuctionService {
     String getMostFrequentBidder(int lotId);
     FullLotDTO getFullLotById(int lotId);
     boolean startLot(int lotId);
-    String createBid(int lotId, CreateBidDTO createBidDTO);
+    String createBid(int lotId, CreationBidDTO creationBidDTO);
     boolean stopLot(int lotId);
-    LotDto createLot(CreateLotDTO lotRequest);
+    LotDto createLot(CreationLotDTO lotRequest);
     Page<LotDto> findLotsByStatus(LotStatus status, int page);
     byte[] exportLotsToCSV();
 }

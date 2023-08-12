@@ -4,6 +4,7 @@ import com.example.auction.dto.*;
 import com.example.auction.enums.LotStatus;
 import com.example.auction.service.AuctionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -57,7 +58,7 @@ public class AuctionController {
     @Operation(summary = "Начать торги по лоту", description = """
             Переводит лот в состояние "начато", которое позволяет делать ставки на лот.
             Если лот уже находится в состоянии "начато", то ничего не делает и возвращает 200""")
-    public ResponseEntity<?> startLot(@PathVariable("id") int lotId) {
+    public ResponseEntity<String> startLot(@PathVariable("id") int lotId) {
         boolean started = auctionService.startLot(lotId);
         return started ? ResponseEntity.ok().build() : new ResponseEntity<>("Лот не найден", HttpStatus.NOT_FOUND);
     }
@@ -66,13 +67,13 @@ public class AuctionController {
     @Operation(summary = "Сделать ставку по лоту", description = """
             Создает новую ставку по лоту.
             Если лот в статусе CREATED или STOPPED, то должна вернутся ошибка""")
-    public ResponseEntity<String> createBid(@RequestParam("Id") int lotId, @RequestBody CreateBidDTO createBidDTO) {
+    public ResponseEntity<String> createBid(@RequestParam("Id") int lotId, @RequestBody CreationBidDTO creationBidDTO) {
         ResponseEntity<String> response;
-        String result = auctionService.createBid(lotId, createBidDTO);
+        String result = auctionService.createBid(lotId, creationBidDTO);
         response = switch (result) {
             case "Лот не найден" -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
             case "Лот в неверном статусе" -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-            default -> ResponseEntity.status(HttpStatus.OK).body(result + " для " + createBidDTO.getBidderName());
+            default -> ResponseEntity.status(HttpStatus.OK).body(result + " для " + creationBidDTO.getBidderName());
         };
         return response;
     }
@@ -81,7 +82,7 @@ public class AuctionController {
     @Operation(summary = "Остановить торги по лоту", description = """
             Переводит лот в состояние "остановлен", которое запрещает делать ставки на лот.
             Если лот уже находится в состоянии "остановлен", то ничего не делает и возвращает 200""")
-    public ResponseEntity<?> stopLot(@PathVariable("id") int lotId) {
+    public ResponseEntity<String> stopLot(@PathVariable("id") int lotId) {
         boolean stopped = auctionService.stopLot(lotId);
         return stopped ? ResponseEntity.ok().build() : new ResponseEntity<>("Лот не найден", HttpStatus.NOT_FOUND);
     }
@@ -90,31 +91,40 @@ public class AuctionController {
     @Operation(summary = "Создает новый лот", description = """
             Метод создания нового лота,
             если есть ошибки в полях объекта лота - то нужно вернуть статус с ошибкой""")
-    public ResponseEntity<LotDto> createLot(@RequestBody CreateLotDTO createLotDTO) {
-        LotDto lotDto = auctionService.createLot(createLotDTO);
+    public ResponseEntity<LotDto> createLot(@RequestBody CreationLotDTO creationLotDTO) {
+        LotDto lotDto = auctionService.createLot(creationLotDTO);
         return ResponseEntity.ok(lotDto);
     }
 
     @GetMapping
     @Operation(summary = "Получить все лоты, основываясь на фильтре статуса и номере страницы", description = """
-            Возвращает все записи о лотах без информации о текущей цене и победителе
-            постранично.
-            Если страница не указана, то возвращается первая страница.
-            Номера страниц начинаются с 0.
-            Лимит на количество лотов на странице - 10 штук.""")
-    public ResponseEntity<Page<LotDto>> findLots(@RequestParam(value = "status", defaultValue = "CREATED") LotStatus status,
-                                                 @RequestParam(value = "page", required = false, defaultValue = "0") int page) {
+        Возвращает все записи о лотах без информации о текущей цене и победителе
+        постранично.
+        Если страница не указана, то возвращается первая страница.
+        Номера страниц начинаются с 0.
+        Лимит на количество лотов на странице - 10 штук.""")
+    @ApiResponse(responseCode = "204", description = "Нет данных для отображения")
+    public ResponseEntity<?> findLots(@RequestParam(value = "status", defaultValue = "CREATED") LotStatus status,
+                                      @RequestParam(value = "page", required = false, defaultValue = "0") int page) {
         Page<LotDto> lots = auctionService.findLotsByStatus(status, page);
+        if (lots.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok(lots);
     }
 
+
     @GetMapping(value = "/export", produces = "application/csv")
     @Operation(summary = "Экспортировать все лоты в файл CSV", description = """
-            Экспортировать все лоты в формате
-            id, title, status, lastBidder, currentPrice
-            в одном файле CSV""")
-    public ResponseEntity<byte[]> exportLotsToCSV() {
+        Экспортировать все лоты в формате
+        id, title, status, lastBidder, currentPrice
+        в одном файле CSV""")
+    @ApiResponse(responseCode = "204", description = "Нет данных для экспорта")
+    public ResponseEntity<?> exportLotsToCSV() {
         byte[] csvData = auctionService.exportLotsToCSV();
+        if (csvData.length == 0) {
+            return ResponseEntity.noContent().build();
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/csv"));
         headers.setContentDispositionFormData("attachment", "lots.csv");
@@ -123,5 +133,6 @@ public class AuctionController {
                 .headers(headers)
                 .body(csvData);
     }
+
 }
 

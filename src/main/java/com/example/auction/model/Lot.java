@@ -2,7 +2,6 @@ package com.example.auction.model;
 
 import com.example.auction.enums.LotStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
